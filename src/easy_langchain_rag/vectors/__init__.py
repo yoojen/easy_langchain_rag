@@ -1,3 +1,5 @@
+import os
+import logging
 from pathlib import Path
 from typing_extensions import Type, List, Union
 from langchain_core.documents import Document
@@ -44,20 +46,18 @@ class VectorStoreActions:
         
         if save_location and vector_store_location:
             raise ValueError("save_location and vector_store_location cannot be both provided. Provide save_location if you want new embeddings or vector_store_location if you are loading existing vector store")
-        
-        if save_location:
-            path = Path(save_location)
-            if not path.exists():
-                print("Creating directory: ", save_location)
-                path.mkdir(parents=True)
-        
+                
         if not vector_store_location and (not save_location or not isinstance(save_location, str)):
             raise ValueError("""save_location or vector_store_location is required.If you don't have already processed vector store you need where to save them""")
         
         if vector_store_location:
-            path = Path(vector_store_location)
+            path = Path(os.getcwd())/vector_store_location
             if not path.exists():
                 raise ValueError("vector_store_location directory does not exist.")
+            
+            # Check if folder is there but nothing inside it
+            if path.stat().st_size == 0:
+                raise ValueError("vector_store_location directory is empty.")
                 
         if not vector_store_location and (not chunks or not isinstance(chunks, list)):
             raise ValueError("chunks must be a list of Document objects or None.")
@@ -82,16 +82,23 @@ class VectorStoreActions:
             Exception: If any error occurs.
         """
         try:
-            path = Path(self.save_location)
-            # Create the 'save_location' directory if it does not exists
-            if not path.exists():
-                path.mkdir(parents=True, exist_ok=True)
-
-            if path.stat().st_size != 0:
+            if not self.save_location:
+                raise Exception("save_location is required to save vector store.")
+            
+            # Associate save_location with the current working directory
+            path = Path(os.getcwd())/self.save_location
+            logging.info(f"\n-------------\nCurrent working directory + save_location:  {path}\n-----------\n")
+            # Check if there are any files in the directory
+            if path.exists():
                 raise Exception("Directory is not empty")
             
+            # Create the directory
+            logging.info(f"Creating directory: {self.save_location}")
+            path.mkdir(parents=True, exist_ok=True)
+            
+            logging.info(f"Saving to embeddings: {path}")
             vector_store = self.vector_store.from_documents(self.chunks, self.embeddings)
-            vector_store.save_local(folder_path=self.save_location)
+            vector_store.save_local(folder_path=path)
         except Exception:
             raise
     
@@ -132,12 +139,22 @@ class VectorStoreActions:
         """
 
         if self.vector_store_location:
-            vectorstore = self._load_existing_vector_store()
+            try:
+                vectorstore = self._load_existing_vector_store()
+            except Exception as e:
+                logging.error(f"Failed to load existing vector store: {e}")
         else:
-            self._save_vector_store()
-            vectorstore = self._load_existing_vector_store(self.save_location)
-        if not vectorstore:
-            raise Exception("Vector store could not be loaded.")
+            try:
+                # Save vector store to the specified save location
+                self._save_vector_store()
+            except Exception as e:
+                logging.error(f"Failed to save vector store: {e}")
+            
+            try:
+                # After saving load the vector store from the save location because it is where is saved
+                vectorstore = self._load_existing_vector_store(self.save_location)
+            except Exception as e:
+                logging.error(f"Failed to load vector store from save location: {e}")
         
         return vectorstore
     
