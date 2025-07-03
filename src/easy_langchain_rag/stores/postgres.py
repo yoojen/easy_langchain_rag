@@ -9,17 +9,34 @@ from . import StoreConfig
 
 
 class PostgresStoreConfig(StoreConfig):
-    def __init__(self, store_type = PostgresStore, use_embeddings = True, embeddings = None, embedding_fields = [], dims = 384):
-        if store_type != PostgresStore:
-            raise ValueError("PostgresStoreConfig must use PostgresStore as the store type.")
+    def __init__(self, use_embeddings = True, embeddings = None, embedding_fields = [], dims = 384):
+        """
+        Initialize a PostgresStoreConfig object with the given configuration.
+
+        Args:
+            use_embeddings (bool, optional): If True, it will use embeddings in the store for similarity search. Defaults to True.
+            embeddings (Type[HuggingFaceEmbeddings], optional): The embeddings model to use. Defaults to None.
+            embedding_fields (list, optional): The fields to embed. Defaults to [].
+            dims (int, optional): The dimensions of the embeddings. Defaults to 384.
+        """
         super().__init__(use_embeddings, embeddings, embedding_fields, dims)
 
         # Attach index from parent class *StoreConfig* to this class *PostgresStoreConfig*
         self.index = self._build_index()
         print("\n-----------------\nIndex: ", self.index, end='\n-------------------\n')
-        self.store_type = store_type
+        self.store_type = PostgresStore
    
     def set_connection_string(self, user: str, password: str, host: str, port: int, database: str):
+        """
+        Set the connection string to connect to the Postgres database.
+
+        Args:
+            user (str): The username for the Postgres database.
+            password (str): The password for the Postgres database.
+            host (str): The hostname or IP address of the Postgres database.
+            port (int): The port number for the Postgres database.
+            database (str): The name of the database.
+        """
         self.conn_string = f"postgresql://{user}:{password}@{host}:{port}/{database}"
 
     def initial_postgres_store_setup(self):
@@ -126,6 +143,13 @@ class PostgresStoreConfig(StoreConfig):
         return formatted
 
     def update_chat_history(self, data: dict, index_keys: list = ["query", "bot"]):
+        """
+        Update the store with the latest chat data.
+
+        Args:
+            data (dict): The query and bot response to store.
+            index_keys (list, optional): The keys to index in the store. Defaults to ["query", "bot"].
+        """
         namespace = (self.user_id, "history")
         unique_key = f"chat_{int(time.time() * 1000)}"
         with self.store_type.from_conn_string(self.conn_string, index=self.index) as store:

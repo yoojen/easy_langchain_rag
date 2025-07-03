@@ -8,12 +8,7 @@ version = "0.0.1"
 authors = [
     { name = "Eugene Mutuyimana", email = "eugenemutuyimana15@gmail.com" },
 ]
-description = """easy_langchain_rag is a Python package designed to simplify the setup and management of LangChain and LangGraph-based 
-    applications. It provides an intuitive interface for defining stores, memories, LLMs, and chat management, all in one place, reducing 
-    the complexity and boilerplate typically required. Whether you're building a prototype or deploying a production-ready RAG 
-    (Retrieval-Augmented Generation) system, easy_langchain_rag streamlines your workflow and accelerates development. Contributions 
-    are welcome—join us to help make building advanced language applications even easier!
-"""
+description = "easy_langchain_rag is a Python package designed to simplify the setup and management of LangChain and LangGraph-based applications."
 readme = "README.md"
 requires-python = ">=3.10"
 classifiers = [

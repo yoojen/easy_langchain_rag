@@ -39,9 +39,13 @@ class DocumentProcessor:
             raise ValueError("file_path must be a string")
         
         if file_path:
-            path= Path(file_path)
+            if "../" in file_path:
+                raise ValueError("file_path must be a relative path")
+            
+            # Associate the filename with the current working directory
+            path= Path(os.getcwd())/file_path
             if not path.exists():
-                raise ValueError(f"file_path {file_path} does not exist")
+                raise ValueError(f"file_path {path} does not exist")
 
         if text_splitter not in [CharacterTextSplitter, RecursiveCharacterTextSplitter, TextSplitter, MarkdownTextSplitter]:
             raise ValueError("Only 'CharacterTextSplitter, RecursiveCharacterTextSplitter, TextSplitter, MarkdownTextSplitter' are supported")
@@ -95,7 +99,7 @@ class DocumentProcessor:
         if extension not in self.ALLOWED_EXTENSIONS:
             raise ValueError(f"Invalid file extension: {extension}")
 
-        return filename
+        return self.knowledge_base
 
     def _load_file(self) -> List[Document]:
         """
