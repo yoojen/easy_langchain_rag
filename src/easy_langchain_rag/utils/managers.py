@@ -39,20 +39,17 @@ class EmbeddingStoreManager:
     
     def _load_existing_chunk_ids(self):
         """
-        Load a list of existing document chunk ids from the vectorstore.
+        Load a list of existing document chunk ids from the vector_store.
 
         A document chunk id is a hash of the content of a chunk of a document. This
-        function is used to load the existing document chunk ids from the vectorstore
+        function is used to load the existing document chunk ids from the vector_store
         when the EmbeddingStoreManager is initialized.
 
         Returns:
             list: A list of document chunk ids.
         """
-        return [
-            doc.metadata.get("chunk_id")
-            for doc in self.vectorstore.similarity_search("", k=len(self.vectorstore.index))
-            if "chunk_id" in doc.metadata
-        ]
+        ids_dict = self.vectorstore.index_to_docstore_id
+        return list(ids_dict.values())
     
     def _create_doc_hash(self, chunks):
         """
