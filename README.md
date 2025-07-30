@@ -1,5 +1,3 @@
 # easy_langchain_rag
 
-This is a simple example package. You can use
-[GitHub-flavored Markdown](https://guides.github.com/yoojen/)
-to write your content.
+Initial setup of langchain wrapper to build RAG based chatbots and virtual AI assistants.
